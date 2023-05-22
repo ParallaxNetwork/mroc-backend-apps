@@ -1,8 +1,9 @@
 import express from "express";
-import { pkpMint } from "../controllers/pkp.js";
+
+import { foo } from "../controllers/sign.js";
 
 const router = express.Router();
 
-router.post("/mint", pkpMint);
+router.post("/foo", foo);
 
 export default router;
