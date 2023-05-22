@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import pkpRouter from "../routes/pkp.js";
 import signRouter from "../routes/sign.js";
+import jwtRouter from "../routes/jwt.js";
 import * as dotenv from "dotenv";
 dotenv.config();
 const app = express();
@@ -12,6 +13,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use("/pkp", pkpRouter);
 app.use("/sign", signRouter);
+app.use("/jwt", jwtRouter);
 function print(path, layer) {
     if (layer.route) {
         layer.route.stack.forEach(print.bind(null, path.concat(split(layer.route.path))));

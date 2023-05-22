@@ -4,6 +4,7 @@ import cors from "cors";
 
 import pkpRouter from "../routes/pkp.js";
 import signRouter from "../routes/sign.js";
+import jwtRouter from "../routes/jwt.js";
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(cors());
 
 app.use("/pkp", pkpRouter);
 app.use("/sign", signRouter);
+app.use("/jwt", jwtRouter);
 
 function print(path, layer) {
   if (layer.route) {

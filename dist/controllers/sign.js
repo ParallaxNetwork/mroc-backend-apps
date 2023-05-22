@@ -43,4 +43,12 @@ export const foo = async (req, res) => {
         return sendReturn(500, error.message, res);
     }
 };
+export const bar = async (req, res) => {
+    try {
+        return sendReturn(200, 'OK', res);
+    }
+    catch (error) {
+        return sendReturn(500, error.message, res);
+    }
+};
 //# sourceMappingURL=sign.js.map
