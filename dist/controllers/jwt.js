@@ -16,18 +16,17 @@ export const jwtGenerate = async (req, res) => {
         return sendReturn(500, error.message, res);
     }
 };
-export const jwtVerify = async (req, res, next) => {
+export const jwtVerify = async (req, res) => {
     try {
         const bearerHeader = req.header(JWT_HEADER);
-        const bearer = bearerHeader.split(' ');
+        const bearer = bearerHeader.split(" ");
         const token = bearer[1];
-        console.log(token);
         if (typeof token == "undefined") {
             return sendReturn(400, "No tokens provided", res);
         }
         const verified = jwt.verify(token, JWT_SECRET);
         if (verified) {
-            next();
+            return sendReturn(200, 'OK', res);
         }
         else {
             return sendReturn(400, "Invalid Token", res);

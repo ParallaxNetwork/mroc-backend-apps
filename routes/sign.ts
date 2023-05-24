@@ -1,9 +1,10 @@
 import express from "express";
 
-import { foo } from "../controllers/sign.js";
+import { foo, bar } from "../controllers/sign.js";
 
 const router = express.Router();
 
 router.post("/foo", foo);
+router.post("/bar", bar);
 
 export default router;

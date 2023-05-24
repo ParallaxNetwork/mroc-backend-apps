@@ -18,7 +18,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@lit-protocol/lit-node-client-nodejs": "^2.1.161",
+    "@lit-protocol/lit-node-client-nodejs": "^2.2.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
