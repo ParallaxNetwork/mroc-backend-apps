@@ -1,5 +1,5 @@
 import express from "express";
-import { pkpMint } from "../controllers/pkp";
+import { pkpMint } from "../controllers/pkp.js";
 
 const router = express.Router();
 
