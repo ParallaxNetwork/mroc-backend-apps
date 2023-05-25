@@ -50,7 +50,7 @@ export const foo = async (req, res) => {
 
     // console.log("signature", signature);
 
-    const recoveredAddress = ethers.verifyMessage(messageToSign, signature);
+    const recoveredAddress = ethers.utils.verifyMessage(messageToSign, signature);
 
     const authSig = {
       sig: signature,

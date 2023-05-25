@@ -9,7 +9,7 @@ const ACCOUNT_ADDRESS = process.env.ACCOUNT_ADDRESS;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
 export const pkpMint = async (req, res) => {
     try {
-        const provider = new ethers.JsonRpcProvider(RPC_URL);
+        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
         const signer = new ethers.Wallet(PRIVATE_KEY, provider);
         const contract = new ethers.Contract(CONTRACT_ADDRESS, contractAbi, signer);
         const mintCost = await contract.mintCost();
