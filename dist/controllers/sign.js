@@ -40,7 +40,7 @@ export const foo = async (req, res) => {
         const messageToSign = siweMessage.prepareMessage();
         const signature = await wallet.signMessage(messageToSign);
         // console.log("signature", signature);
-        const recoveredAddress = ethers.verifyMessage(messageToSign, signature);
+        const recoveredAddress = ethers.utils.verifyMessage(messageToSign, signature);
         const authSig = {
             sig: signature,
             derivedVia: "web3.eth.personal.sign",
