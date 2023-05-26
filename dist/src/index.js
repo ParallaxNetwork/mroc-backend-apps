@@ -1,6 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
+import mongoose from "mongoose";
 import pkpRouter from "../routes/pkp.js";
 import signRouter from "../routes/sign.js";
 import jwtRouter from "../routes/jwt.js";
@@ -44,6 +45,9 @@ function split(thing) {
     }
 }
 app._router.stack.forEach(print.bind(null, []));
+// Connect to MongoDB
+mongoose.set('strictQuery', false);
+mongoose.connect(process.env.DATABASE_URL);
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });
