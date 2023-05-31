@@ -15,7 +15,7 @@ export const pkpMint = async (req, res) => {
         const mintCost = await contract.mintCost();
         const mintNext = await contract.mintNext(2, { from: ACCOUNT_ADDRESS, value: mintCost });
         const tx = await mintNext.wait();
-        const tokenId = String(tx.logs[1].args.tokenId);
+        const tokenId = String(tx.events[1].args.tokenId);
         const ethAddress = await contract.getEthAddress(tokenId);
         const transferOwnership = await contract.safeTransferFrom(ACCOUNT_ADDRESS, ethAddress, tokenId);
         console.log("tokenId: " + tokenId);

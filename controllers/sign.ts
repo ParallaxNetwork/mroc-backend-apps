@@ -5,7 +5,7 @@ import * as LitJsSdk from "@lit-protocol/lit-node-client-nodejs";
 
 const litActionCode = `
 const go = async () => {
-  const url = "http://localhost:3000/jwt/verify"
+  const url = "https://mroc-backend-apps-6n4eg.ondigitalocean.app/jwt/verify"
   const resp = await fetch(url, {
     method: 'POST',
     headers: {
@@ -98,7 +98,7 @@ export const foo = async (req, res) => {
 export const bar = async (req, res) => {
   try {
     const { jwtAuth } = req.body;
-    const url = "http://localhost:3000/jwt/verify";
+    const url = "https://mroc-backend-apps-6n4eg.ondigitalocean.app/jwt/verify";
     const resp = await fetch(url, {
       method: "POST",
       headers: {

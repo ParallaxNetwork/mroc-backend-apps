@@ -1,10 +1,11 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
+import mongoose from "mongoose";
 
-import pkpRouter from "../routes/pkp.js";
-import signRouter from "../routes/sign.js";
 import jwtRouter from "../routes/jwt.js";
+import userRouter from "../routes/user.js";
+import ipfsRouter from "../routes/ipfs.js";
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -16,9 +17,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
-app.use("/pkp", pkpRouter);
-app.use("/sign", signRouter);
 app.use("/jwt", jwtRouter);
+app.use("/user", userRouter);
+app.use("/ipfs", ipfsRouter);
 
 function print(path, layer) {
   if (layer.route) {
@@ -56,6 +57,10 @@ function split(thing) {
 }
 
 app._router.stack.forEach(print.bind(null, []));
+
+// Connect to MongoDB
+mongoose.set("strictQuery", false);
+mongoose.connect(process.env.DATABASE_URL);
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
