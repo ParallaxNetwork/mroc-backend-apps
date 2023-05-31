@@ -36,17 +36,16 @@ export const jwtVerify = async (req, res) => {
     const verify = jwt.verify(token, JWT_SECRET);
 
     const nik = verify.nik;
+    const ethAddress = verify.address
+
     const currUser = await User.findOne({ nik: nik, isActive: true });
 
-    if (currUser == null) {
-      return sendReturn(400, "Invalid", res);
-    }
-
-    if (verify) {
+    if (currUser != null && verify && currUser.ethAddress == ethAddress) {
       return sendReturn(200, "OK", res);
     } else {
-      return sendReturn(400, "Invalid", res);
+      return sendReturn(400, "Invalid", res)
     }
+
   } catch (error) {
     return sendReturn(500, error.message, res);
   }
