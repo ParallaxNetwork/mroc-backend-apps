@@ -1,5 +1,6 @@
 import { sendReturn } from "../utils/return.js";
 import jwt from "jsonwebtoken";
+import User from "../models/user.js";
 import * as dotenv from "dotenv";
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -24,12 +25,17 @@ export const jwtVerify = async (req, res) => {
         if (typeof token == "undefined") {
             return sendReturn(400, "No tokens provided", res);
         }
-        const verified = jwt.verify(token, JWT_SECRET);
-        if (verified) {
-            return sendReturn(200, 'OK', res);
+        const verify = jwt.verify(token, JWT_SECRET);
+        const nik = verify.nik;
+        const currUser = await User.findOne({ nik: nik, isActive: true });
+        if (currUser == null) {
+            return sendReturn(400, "Invalid", res);
+        }
+        if (verify) {
+            return sendReturn(200, "OK", res);
         }
         else {
-            return sendReturn(400, "Invalid Token", res);
+            return sendReturn(400, "Invalid", res);
         }
     }
     catch (error) {
