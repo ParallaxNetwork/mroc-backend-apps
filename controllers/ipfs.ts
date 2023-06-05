@@ -20,13 +20,7 @@ const go = async () => {
     }
   }).then((response) => response.json())
 
-  console.log(resp)
-
-  if (!resp.success) {
-    return false
-  }
-
-  return true
+  LitActions.setResponse({response: JSON.stringify({success: resp.success})})
 }
 
 go()
@@ -44,15 +38,16 @@ export const ipfsPost = async (req, res) => {
 
     const authSig = await generateAuthSig();
 
-    const signatures = await litNodeClient.executeJs({
-      ipfsId: "QmcJBu1qm5cxUrJpQ3A43bmKShThzS5b1E5Waa6UAewGoW",
+    const signatures:any = await litNodeClient.executeJs({
+      // ipfsId: "QmVfmdTiDU9UGC9aJPPV7UsfVy7soUJFPoy5sgYv1FSQhU",
+      code: litActionCode,
       authSig: authSig,
       jsParams: {
         jwtAuth: bearerHeader,
       },
     });
 
-    console.log("signatures: ", signatures);
+    console.log(signatures.response.success);
 
     return sendReturn(200, "OK", res);
   } catch (error) {
