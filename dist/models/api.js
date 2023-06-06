@@ -3,7 +3,7 @@ const schema = new mongoose.Schema({
     _id: String,
     apiKey: String,
     hashKey: String,
-    isActive: String,
+    isActive: Boolean,
 }, { timestamps: true });
 export default mongoose.model("apikey", schema);
 //# sourceMappingURL=api.js.map

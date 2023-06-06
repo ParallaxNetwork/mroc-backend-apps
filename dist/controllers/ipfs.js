@@ -1,12 +1,16 @@
 import { sendReturn } from "../utils/return.js";
-import { generateAuthSig } from "../utils/sig.js";
+import { ipfsStorageUpload } from "../utils/ipfs.js";
+import { toArrayBuffer } from "../utils/image.js";
+import File from "../models/file.js";
+import sharp from "sharp";
+import dcmjsimaging from "dcmjs-imaging";
+import { PNG } from "pngjs";
+import { nanoid } from "nanoid";
 import * as LitJsSdk from "@lit-protocol/lit-node-client-nodejs";
 import * as dotenv from "dotenv";
 dotenv.config();
+const { DicomImage, NativePixelDecoder } = dcmjsimaging;
 const JWT_HEADER = process.env.JWT_HEADER;
-const JWT_VERIFY_IPFS = process.env.JWT_VERIFY_IPFS;
-const INFURA_ID = process.env.INFURA_ID;
-const INFURA_SECRET = process.env.INFURA_SECRET;
 const litActionCode = `
 const go = async () => {
   const url = "https://mroc-backend-apps-6n4eg.ondigitalocean.app/jwt/verify"
@@ -24,22 +28,40 @@ go()
 `;
 export const ipfsPost = async (req, res) => {
     try {
-        // Try Lit Action
-        const bearerHeader = req.header(JWT_HEADER);
-        const litNodeClient = new LitJsSdk.LitNodeClientNodeJs({
-            litNetwork: "serrano",
-        });
-        await litNodeClient.connect();
-        const authSig = await generateAuthSig();
-        const signatures = await litNodeClient.executeJs({
-            // ipfsId: "QmVfmdTiDU9UGC9aJPPV7UsfVy7soUJFPoy5sgYv1FSQhU",
-            code: litActionCode,
-            authSig: authSig,
-            jsParams: {
-                jwtAuth: bearerHeader,
-            },
-        });
-        console.log(signatures.response.success);
+        let file;
+        try {
+            file = req.files.file;
+        }
+        catch (error) {
+            return sendReturn(400, "No file uploaded", res);
+        }
+        // Png Processing
+        const arrayBuffer = toArrayBuffer(file.data);
+        await NativePixelDecoder.initializeAsync();
+        const image = new DicomImage(arrayBuffer);
+        const renderingResult = image.render();
+        const renderedPixels = renderingResult.pixels;
+        const width = renderingResult.width;
+        const height = renderingResult.height;
+        const png = new PNG({ width, height });
+        png.data = Buffer.from(renderedPixels);
+        const pngBuffer = PNG.sync.write(png);
+        // Webp Processing
+        const webpFile = await sharp(pngBuffer).webp().toBuffer();
+        // Encryption
+        const result = await LitJsSdk.encryptFile({ file: new Blob([webpFile]) });
+        const fileBase64 = await LitJsSdk.blobToBase64String(result.encryptedFile);
+        // Convert to string
+        const symmetricKey = String(result.symmetricKey);
+        // Upload to IPFS
+        const { cid, url } = await ipfsStorageUpload(JSON.stringify(fileBase64));
+        // Save to DB
+        await new File({
+            _id: nanoid(),
+            cid: cid,
+            url: url,
+            symmetricKey: symmetricKey
+        }).save();
         return sendReturn(200, "OK", res);
     }
     catch (error) {

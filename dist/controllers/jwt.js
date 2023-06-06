@@ -1,4 +1,6 @@
 import { sendReturn } from "../utils/return.js";
+import { generateAuthSig } from "../utils/sig.js";
+import * as LitJsSdk from "@lit-protocol/lit-node-client-nodejs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import * as dotenv from "dotenv";
@@ -30,11 +32,37 @@ export const jwtVerify = async (req, res) => {
         const ethAddress = verify.address;
         const currUser = await User.findOne({ nik: nik, isActive: true });
         if (currUser != null && verify && currUser.ethAddress == ethAddress) {
-            return sendReturn(200, "OK", res);
+            return sendReturn(200, currUser._id, res);
         }
         else {
             return sendReturn(400, "Invalid", res);
         }
+    }
+    catch (error) {
+        return sendReturn(500, error.message, res);
+    }
+};
+export const jwtAuth = async (req, res, next) => {
+    try {
+        // JWT Checking
+        const bearerHeader = req.header(JWT_HEADER);
+        const litNodeClient = new LitJsSdk.LitNodeClientNodeJs({
+            litNetwork: "serrano",
+        });
+        await litNodeClient.connect();
+        const authSig = await generateAuthSig();
+        const signatures = await litNodeClient.executeJs({
+            ipfsId: "QmXUJXZaZ2bLsrnNfLb48th3jgWBLbPB6aS1wXK9LPbKTt",
+            // code: litActionCode,
+            authSig: authSig,
+            jsParams: {
+                jwtAuth: bearerHeader,
+            },
+        });
+        if (!signatures.response.success) {
+            return sendReturn(400, "Invalid JWT", res);
+        }
+        next();
     }
     catch (error) {
         return sendReturn(500, error.message, res);
