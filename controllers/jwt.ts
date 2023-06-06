@@ -52,6 +52,22 @@ export const jwtVerify = async (req, res) => {
   }
 };
 
+const litActionCode = `
+const go = async () => {
+  const url = "https://mroc-backend-apps-6n4eg.ondigitalocean.app/jwt/verify"
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'authorization': jwtAuth
+    }
+  }).then((response) => response.json())
+
+  LitActions.setResponse({response: JSON.stringify({success: resp.success, user: resp.message})})
+}
+
+go()
+`;
+
 export const jwtAuth = async (req, res, next) => {
   try {
     // JWT Checking
@@ -65,7 +81,7 @@ export const jwtAuth = async (req, res, next) => {
     const authSig = await generateAuthSig();
 
     const signatures: any = await litNodeClient.executeJs({
-      ipfsId: "QmXUJXZaZ2bLsrnNfLb48th3jgWBLbPB6aS1wXK9LPbKTt",
+      ipfsId: "QmSQjcxnq7SLNUCY2wCGR7QmnLS8ghoyYqoqRnLyRnM3y2",
       // code: litActionCode,
       authSig: authSig,
       jsParams: {
@@ -76,7 +92,8 @@ export const jwtAuth = async (req, res, next) => {
     if (!signatures.response.success) {
       return sendReturn(400, "Invalid JWT", res);
     }
-
+    
+    req.user = signatures.response.user
     next()
   } catch (error) {
     return sendReturn(500, error.message, res);
