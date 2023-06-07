@@ -20,6 +20,7 @@
   "dependencies": {
     "@lit-protocol/lit-node-client-nodejs": "^2.2.11",
     "@thirdweb-dev/storage": "^1.1.4",
+    "archiver": "^5.3.1",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
