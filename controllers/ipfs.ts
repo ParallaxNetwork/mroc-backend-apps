@@ -1,11 +1,11 @@
 import { sendReturn } from "../utils/return.js";
-import { generateAuthSig } from "../utils/sig.js";
 import { ipfsStorageDownload, ipfsStorageUpload } from "../utils/ipfs.js";
 import File from "../models/file.js";
 import sharp from "sharp";
 import dcmjsimaging from "dcmjs-imaging";
 import { PNG } from "pngjs";
 import { nanoid } from "nanoid";
+import archiver from "archiver";
 import * as LitJsSdk from "@lit-protocol/lit-node-client-nodejs";
 
 import * as dotenv from "dotenv";
@@ -73,9 +73,78 @@ export const ipfsPost = async (req, res) => {
   }
 };
 
+export const ipfsGetAll = async (req, res) => {
+  try {
+    const files = await File.find({ ownerId: req.user, isActive: true });
+    let buffers = [];
+
+    for (const item of files) {
+      const fileBase64 = await ipfsStorageDownload(item.cid);
+      const encryptedBlob = LitJsSdk.base64StringToBlob(fileBase64);
+      const arrayKey = item.symmetricKey.split(",").map(Number);
+      const symmetricKey = new Uint8Array(arrayKey);
+
+      const decryptedFile = await LitJsSdk.decryptFile({
+        file: encryptedBlob,
+        symmetricKey: symmetricKey,
+      });
+
+      const decryptedFileBuffer = Buffer.from(decryptedFile);
+
+      buffers.push({
+        buffer: decryptedFileBuffer,
+        name: nanoid() + ".webp",
+      });
+    }
+
+    const archive = archiver("zip");
+    res.attachment("decrypted.zip");
+    archive.pipe(res);
+
+    buffers.forEach(({ buffer, name }) => {
+      archive.append(buffer, { name });
+    });
+
+    archive.finalize();
+  } catch (error) {
+    return sendReturn(500, error.message, res);
+  }
+};
+
 export const ipfsGet = async (req, res) => {
   try {
-    return sendReturn(200, "OK", res);
+    const { fileId } = req.body;
+
+    if (typeof fileId != "string") {
+      return sendReturn(400, "Invalid fileId", res);
+    }
+
+    const currFile = await File.findOne({ _id: fileId, isActive: true });
+
+    if (!currFile) {
+      return sendReturn(400, `File with id ${fileId} not found`, res);
+    }
+
+    const fileBase64 = await ipfsStorageDownload(currFile.cid);
+    const encryptedBlob = LitJsSdk.base64StringToBlob(fileBase64);
+    const arrayKey = currFile.symmetricKey.split(",").map(Number);
+    const symmetricKey = new Uint8Array(arrayKey);
+
+    const decryptedFile = await LitJsSdk.decryptFile({
+      file: encryptedBlob,
+      symmetricKey: symmetricKey,
+    });
+
+    const decryptedFileBuffer = Buffer.from(decryptedFile);
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${nanoid()}.webp`
+    );
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Length", decryptedFileBuffer.length);
+    res.write(decryptedFileBuffer);
+    res.end();
   } catch (error) {
     return sendReturn(500, error.message, res);
   }
