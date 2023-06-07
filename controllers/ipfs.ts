@@ -13,8 +13,6 @@ dotenv.config();
 
 const { DicomImage, NativePixelDecoder } = dcmjsimaging;
 
-const JWT_HEADER = process.env.JWT_HEADER;
-
 function toArrayBuffer(buffer) {
   return buffer.buffer.slice(
     buffer.byteOffset,

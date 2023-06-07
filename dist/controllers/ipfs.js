@@ -10,7 +10,6 @@ import * as LitJsSdk from "@lit-protocol/lit-node-client-nodejs";
 import * as dotenv from "dotenv";
 dotenv.config();
 const { DicomImage, NativePixelDecoder } = dcmjsimaging;
-const JWT_HEADER = process.env.JWT_HEADER;
 function toArrayBuffer(buffer) {
     return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 }
