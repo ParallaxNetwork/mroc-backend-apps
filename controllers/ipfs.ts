@@ -76,6 +76,10 @@ export const ipfsGetAll = async (req, res) => {
     const files = await File.find({ ownerId: req.user, isActive: true });
     let buffers = [];
 
+    if (files.length == 0) {
+      return sendReturn(400, "No files uploaded yet", res);
+    }
+
     for (const item of files) {
       const fileBase64 = await ipfsStorageDownload(item.cid);
       const encryptedBlob = LitJsSdk.base64StringToBlob(fileBase64);

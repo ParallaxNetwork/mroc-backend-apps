@@ -2,12 +2,14 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import mongoose from "mongoose";
-import fileupload from 'express-fileupload'
+import fileupload from "express-fileupload";
 
 import jwtRouter from "../routes/jwt.js";
 import userRouter from "../routes/user.js";
 import ipfsRouter from "../routes/ipfs.js";
 import apiRouter from "../routes/api.js";
+import fileRouter from "../routes/file.js";
+import consentRouter from "../routes/consent.js";
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -18,12 +20,14 @@ const port = process.env.PORT || 3001;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-app.use(fileupload())
+app.use(fileupload());
 
 app.use("/jwt", jwtRouter);
 app.use("/user", userRouter);
 app.use("/ipfs", ipfsRouter);
 app.use("/api", apiRouter);
+app.use("/file", fileRouter);
+app.use("/consent", consentRouter);
 
 function print(path, layer) {
   if (layer.route) {
