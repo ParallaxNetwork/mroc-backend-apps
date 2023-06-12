@@ -73,6 +73,10 @@ export const jwtAuth = async (req, res, next) => {
     // JWT Checking
     const bearerHeader = req.header(JWT_HEADER);
 
+    if (typeof bearerHeader != "string") {
+      return sendReturn(400, "Invalid Token", res);
+    }
+
     const litNodeClient = new LitJsSdk.LitNodeClientNodeJs({
       litNetwork: "serrano",
     });
@@ -92,9 +96,9 @@ export const jwtAuth = async (req, res, next) => {
     if (!signatures.response.success) {
       return sendReturn(400, "Invalid JWT", res);
     }
-    
-    req.user = signatures.response.user
-    next()
+
+    req.user = signatures.response.user;
+    next();
   } catch (error) {
     return sendReturn(500, error.message, res);
   }

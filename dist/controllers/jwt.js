@@ -61,6 +61,9 @@ export const jwtAuth = async (req, res, next) => {
     try {
         // JWT Checking
         const bearerHeader = req.header(JWT_HEADER);
+        if (typeof bearerHeader != "string") {
+            return sendReturn(400, "Invalid Token", res);
+        }
         const litNodeClient = new LitJsSdk.LitNodeClientNodeJs({
             litNetwork: "serrano",
         });

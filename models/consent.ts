@@ -6,7 +6,6 @@ const schema = new mongoose.Schema(
     ownerId: String,
     receiverId: String,
     fileId: String,
-    expiryDate: Number,
     isActive: Boolean,
   },
   { timestamps: true }

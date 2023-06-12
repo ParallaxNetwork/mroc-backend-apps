@@ -2,18 +2,17 @@ import { sendReturn } from "../utils/return.js";
 import User from "../models/user.js";
 import File from "../models/file.js";
 import Consent from "../models/consent.js";
-import { nanoid } from "nanoid"
-import { isValidTimestamp } from "../utils/validator.js"
+import { nanoid } from "nanoid";
+import { isValidTimestamp } from "../utils/validator.js";
 
 export const consentAdd = async (req, res) => {
   try {
-    const { receiverId, fileId, expiryDate } = req.body;
+    const { receiverId, fileId } = req.body;
 
     let missingFields = [];
 
     receiverId ? undefined : missingFields.push("receiverId");
     fileId ? undefined : missingFields.push("fileId");
-    expiryDate ? undefined : missingFields.push("expiryDate");
 
     if (missingFields.length > 0) {
       return sendReturn(400, `Missing Field ${missingFields.join(", ")}`, res);
@@ -31,10 +30,19 @@ export const consentAdd = async (req, res) => {
       return sendReturn(400, `File with id ${fileId} not found`, res);
     }
 
-    const currUnixTime = Math.floor(Date.now() / 1000) 
+    const currConsent = await Consent.findOne({
+      ownerId: req.user,
+      receiverId: receiverId,
+      fileId: fileId,
+      isActive: true,
+    });
 
-    if (!isValidTimestamp(expiryDate) || expiryDate > currUnixTime) {
-      return sendReturn(400, "Not valid date for expiryDate", res)
+    if (currConsent) {
+      return sendReturn(
+        400,
+        "There is already active consent with current input",
+        res
+      );
     }
 
     await new Consent({
@@ -42,11 +50,53 @@ export const consentAdd = async (req, res) => {
       ownerId: req.user,
       receiverId: receiverId,
       fileId: fileId,
-      expiryDate: expiryDate,
-      isActive: true
-    }).save()
+      isActive: true,
+    }).save();
 
     return sendReturn(200, "OK", res);
+  } catch (error) {
+    return sendReturn(500, error.message, res);
+  }
+};
+
+export const consentDelete = async (req, res) => {
+  try {
+    const { consentId } = req.body;
+
+    if (typeof consentId != "string") {
+      return sendReturn(400, "Invalid ConsentId", res);
+    }
+
+    const currConsent = await Consent.findOne({
+      _id: consentId,
+      isActive: true,
+    });
+
+    if (!currConsent) {
+      return sendReturn(400, `No consent with ${consentId} id`, res);
+    }
+
+    currConsent.isActive = false;
+    await currConsent.save();
+
+    return sendReturn(200, "OK", res);
+  } catch (error) {
+    return sendReturn(500, error.message, res);
+  }
+};
+
+export const consentGetList = async (req, res) => {
+  try {
+    const consents = await Consent.find(
+      { ownerId: req.user, isActive: true },
+      {_id:1, ownerId:1, receiverId:1, fileId:1}
+    );
+
+    if (consents.length < 1) {
+      return sendReturn(400, "Does not yet have consent", res);
+    }
+
+    return sendReturn(200, consents, res);
   } catch (error) {
     return sendReturn(500, error.message, res);
   }
