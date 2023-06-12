@@ -1,6 +1,8 @@
 import { sendReturn } from "../utils/return.js";
 import { ipfsStorageDownload, ipfsStorageUpload } from "../utils/ipfs.js";
+import { isValidTimestamp } from "../utils/validator.js";
 import File from "../models/file.js";
+import Consent from "../models/consent.js"
 import sharp from "sharp";
 import dcmjsimaging from "dcmjs-imaging";
 import { PNG } from "pngjs";
@@ -76,6 +78,10 @@ export const ipfsGetAll = async (req, res) => {
     const files = await File.find({ ownerId: req.user, isActive: true });
     let buffers = [];
 
+    if (files.length == 0) {
+      return sendReturn(400, "No files uploaded yet", res);
+    }
+
     for (const item of files) {
       const fileBase64 = await ipfsStorageDownload(item.cid);
       const encryptedBlob = LitJsSdk.base64StringToBlob(fileBase64);
@@ -121,6 +127,14 @@ export const ipfsGet = async (req, res) => {
 
     if (!currFile) {
       return sendReturn(400, `File with id ${fileId} not found`, res);
+    }
+
+    if (currFile.ownerId != req.user) {
+      const consent = await Consent.findOne({ fileId: fileId, receiverId: req.user, isActive: true })
+      
+      if (!consent) {
+        return sendReturn(400, "You don't have a consent with the owner of the file", res)
+      }
     }
 
     const fileBase64 = await ipfsStorageDownload(currFile.cid);
