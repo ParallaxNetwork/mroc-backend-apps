@@ -16,7 +16,7 @@ export const jwtGenerate = async (req, res) => {
       time: Date(),
     };
 
-    const token = jwt.sign(data, JWT_SECRET);
+    const token = jwt.sign(data, JWT_SECRET, { expiresIn: "1m" });
 
     return sendReturn(200, token, res);
   } catch (error) {

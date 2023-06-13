@@ -22,7 +22,7 @@ export const userLogin = async (req, res) => {
         apiKey ? undefined : missingFields.push("apiKey");
         password ? undefined : missingFields.push("password");
         if (missingFields.length > 0) {
-            return sendReturn(400, `Missing Field ${missingFields.join(', ')}`, res);
+            return sendReturn(400, `Missing Field ${missingFields.join(", ")}`, res);
         }
         const apiVerify = await Api.findOne({ apiKey: apiKey, isActive: true });
         if (!apiVerify) {
@@ -39,9 +39,9 @@ export const userLogin = async (req, res) => {
         const data = {
             nik: nik,
             address: currUser.ethAddress,
-            time: Date(),
+            time: Date.now(),
         };
-        const token = jwt.sign(data, JWT_SECRET);
+        const token = jwt.sign(data, JWT_SECRET, { expiresIn: "5m" });
         return sendReturn(200, token, res);
     }
     catch (error) {
