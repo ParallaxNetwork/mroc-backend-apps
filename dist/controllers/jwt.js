@@ -12,7 +12,7 @@ export const jwtGenerate = async (req, res) => {
         const data = {
             time: Date(),
         };
-        const token = jwt.sign(data, JWT_SECRET);
+        const token = jwt.sign(data, JWT_SECRET, { expiresIn: "1m" });
         return sendReturn(200, token, res);
     }
     catch (error) {
@@ -28,6 +28,7 @@ export const jwtVerify = async (req, res) => {
             return sendReturn(400, "No tokens provided", res);
         }
         const verify = jwt.verify(token, JWT_SECRET);
+        console.log(verify);
         const nik = verify.nik;
         const ethAddress = verify.address;
         const currUser = await User.findOne({ nik: nik, isActive: true });

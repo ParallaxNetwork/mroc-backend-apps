@@ -24,20 +24,20 @@ export const userLogin = async (req, res) => {
   try {
     const { nik, apiKey, password } = req.body;
 
-    let missingFields = []
+    let missingFields = [];
 
-    nik ? undefined : missingFields.push("nik")
-    apiKey ? undefined : missingFields.push("apiKey")
-    password ? undefined : missingFields.push("password")
+    nik ? undefined : missingFields.push("nik");
+    apiKey ? undefined : missingFields.push("apiKey");
+    password ? undefined : missingFields.push("password");
 
     if (missingFields.length > 0) {
-      return sendReturn(400, `Missing Field ${missingFields.join(', ')}`, res)
+      return sendReturn(400, `Missing Field ${missingFields.join(", ")}`, res);
     }
 
     const apiVerify = await Api.findOne({ apiKey: apiKey, isActive: true });
 
     if (!apiVerify) {
-      return sendReturn(400, "Invalid Api Key", res)
+      return sendReturn(400, "Invalid Api Key", res);
     }
 
     const validate = await bcrypt.compare(password, apiVerify.hashKey);
@@ -55,10 +55,10 @@ export const userLogin = async (req, res) => {
     const data = {
       nik: nik,
       address: currUser.ethAddress,
-      time: Date(),
+      time: Date.now(),
     };
 
-    const token = jwt.sign(data, JWT_SECRET);
+    const token = jwt.sign(data, JWT_SECRET, { expiresIn: "5m"});
 
     return sendReturn(200, token, res);
   } catch (error) {
