@@ -1,14 +1,13 @@
-import { sendReturn } from "../utils/return.js";
-import { ipfsStorageDownload, ipfsStorageUpload } from "../utils/ipfs.js";
-import File from "../models/file.js";
-import Consent from "../models/consent.js";
-import sharp from "sharp";
-import dcmjsimaging from "dcmjs-imaging";
-import { PNG } from "pngjs";
-import { nanoid } from "nanoid";
-import archiver from "archiver";
-import * as LitJsSdk from "@lit-protocol/lit-node-client-nodejs";
-import * as dotenv from "dotenv";
+import { sendReturn } from '../utils/return.js';
+import { ipfsStorageDownload, ipfsStorageUpload } from '../utils/ipfs.js';
+import File from '../models/file.js';
+import sharp from 'sharp';
+import dcmjsimaging from 'dcmjs-imaging';
+import { PNG } from 'pngjs';
+import { nanoid } from 'nanoid';
+import archiver from 'archiver';
+import * as LitJsSdk from '@lit-protocol/lit-node-client-nodejs';
+import * as dotenv from 'dotenv';
 dotenv.config();
 const { DicomImage, NativePixelDecoder } = dcmjsimaging;
 function toArrayBuffer(buffer) {
@@ -16,12 +15,19 @@ function toArrayBuffer(buffer) {
 }
 export const ipfsPost = async (req, res) => {
     try {
+        if (!req.facility) {
+            return sendReturn(400, 'Not Authorized', res);
+        }
         let file;
         try {
             file = req.files.file;
         }
         catch (error) {
-            return sendReturn(400, "No file uploaded", res);
+            return sendReturn(400, 'No file uploaded', res);
+        }
+        const { nik } = req.body;
+        if (typeof nik == 'undefined') {
+            return sendReturn(400, 'Invalid NIK', res);
         }
         // Png Processing
         const arrayBuffer = toArrayBuffer(file.data);
@@ -49,10 +55,10 @@ export const ipfsPost = async (req, res) => {
             cid: cid,
             url: url,
             symmetricKey: symmetricKey,
-            ownerId: req.user,
+            owner: nik,
             isActive: true,
         }).save();
-        return sendReturn(200, "OK", res);
+        return sendReturn(200, 'OK', res);
     }
     catch (error) {
         return sendReturn(500, error.message, res);
@@ -60,15 +66,15 @@ export const ipfsPost = async (req, res) => {
 };
 export const ipfsGetAll = async (req, res) => {
     try {
-        const files = await File.find({ ownerId: req.user, isActive: true });
+        const files = await File.find({ owner: req.user, isActive: true });
         let buffers = [];
         if (files.length == 0) {
-            return sendReturn(400, "No files uploaded yet", res);
+            return sendReturn(400, 'No files uploaded yet', res);
         }
         for (const item of files) {
             const fileBase64 = await ipfsStorageDownload(item.cid);
             const encryptedBlob = LitJsSdk.base64StringToBlob(fileBase64);
-            const arrayKey = item.symmetricKey.split(",").map(Number);
+            const arrayKey = item.symmetricKey.split(',').map(Number);
             const symmetricKey = new Uint8Array(arrayKey);
             const decryptedFile = await LitJsSdk.decryptFile({
                 file: encryptedBlob,
@@ -77,11 +83,11 @@ export const ipfsGetAll = async (req, res) => {
             const decryptedFileBuffer = Buffer.from(decryptedFile);
             buffers.push({
                 buffer: decryptedFileBuffer,
-                name: nanoid() + ".webp",
+                name: nanoid() + '.webp',
             });
         }
-        const archive = archiver("zip");
-        res.attachment("decrypted.zip");
+        const archive = archiver('zip');
+        res.attachment('decrypted.zip');
         archive.pipe(res);
         buffers.forEach(({ buffer, name }) => {
             archive.append(buffer, { name });
@@ -95,31 +101,28 @@ export const ipfsGetAll = async (req, res) => {
 export const ipfsGet = async (req, res) => {
     try {
         const { fileId } = req.body;
-        if (typeof fileId != "string") {
-            return sendReturn(400, "Invalid fileId", res);
+        if (typeof fileId != 'string') {
+            return sendReturn(400, 'Invalid fileId', res);
         }
         const currFile = await File.findOne({ _id: fileId, isActive: true });
         if (!currFile) {
             return sendReturn(400, `File with id ${fileId} not found`, res);
         }
-        if (currFile.ownerId != req.user) {
-            const consent = await Consent.findOne({ fileId: fileId, receiverId: req.user, isActive: true });
-            if (!consent) {
-                return sendReturn(400, "You don't have a consent with the owner of the file", res);
-            }
+        if (currFile.owner != req.user) {
+            return sendReturn(400, 'You are not the owner of the file', res);
         }
         const fileBase64 = await ipfsStorageDownload(currFile.cid);
         const encryptedBlob = LitJsSdk.base64StringToBlob(fileBase64);
-        const arrayKey = currFile.symmetricKey.split(",").map(Number);
+        const arrayKey = currFile.symmetricKey.split(',').map(Number);
         const symmetricKey = new Uint8Array(arrayKey);
         const decryptedFile = await LitJsSdk.decryptFile({
             file: encryptedBlob,
             symmetricKey: symmetricKey,
         });
         const decryptedFileBuffer = Buffer.from(decryptedFile);
-        res.setHeader("Content-Disposition", `attachment; filename=${nanoid()}.webp`);
-        res.setHeader("Content-Type", "application/octet-stream");
-        res.setHeader("Content-Length", decryptedFileBuffer.length);
+        res.setHeader('Content-Disposition', `attachment; filename=${nanoid()}.webp`);
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Length', decryptedFileBuffer.length);
         res.write(decryptedFileBuffer);
         res.end();
     }

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose'
 
 const schema = new mongoose.Schema(
   {
@@ -6,10 +6,10 @@ const schema = new mongoose.Schema(
     cid: String,
     url: String,
     symmetricKey: String,
-    ownerId: String,
+    owner: String,
     isActive: Boolean,
   },
   { timestamps: true }
-);
+)
 
-export default mongoose.model("file", schema);
+export default mongoose.model('file', schema)
