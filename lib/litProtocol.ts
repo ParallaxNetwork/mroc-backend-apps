@@ -138,7 +138,7 @@ export const litConsentAuth = async (
 
           console.log(resp)
           
-          LitActions.setResponse({response: JSON.stringify({resp})})
+          LitActions.setResponse({response: JSON.stringify(resp)})
         } catch(error) {
           LitActions.setResponse({response: JSON.stringify({auth: false})})
         }
@@ -152,7 +152,7 @@ export const litConsentAuth = async (
     })
     await litNodeClient.connect()
 
-    const signatures = await litNodeClient.executeJs({
+    const consent = await litNodeClient.executeJs({
       code: litActionCode,
       authSig: authSig,
       jsParams: {
@@ -162,9 +162,7 @@ export const litConsentAuth = async (
       },
     })
 
-    console.log(signatures.response)
-
-    return signatures.response['auth'] || false
+    return consent.response['authSig'] || ''
   } catch (error) {
     return error.message
   }

@@ -59,12 +59,12 @@ export const fileGet = async (
     let authSig: IAuthSig = await genAuthSig(wallet)
 
     if (currFile.owner != walletAddress) {
-      const authorized = await litConsentAuth(id, walletAddress, authSig)
-      if (!authorized) {
+      const consentAuthSig = await litConsentAuth(id, walletAddress, authSig)
+      if (!consentAuthSig) {
         return res.status(200).send('unauthorized')
       }
 
-      // const consent = await Consent.findOne({})
+      authSig = consentAuthSig
     }
 
     const decryptedFileBuffer = Buffer.from(
