@@ -1,10 +1,11 @@
 import express from 'express'
-import { fileGetList } from '../controllers/file.js'
-import { jwtAuth } from '../controllers/jwt.js'
-import { apiAuth } from '../controllers/api.js'
+
+import { filePost, fileGet } from '../controllers/file.js'
+import { userAuth } from '../controllers/user.js'
 
 const router = express.Router()
 
-router.get('/get/list', jwtAuth, fileGetList)
+router.post('/', userAuth, filePost)
+router.get('/:id', userAuth, fileGet)
 
 export default router

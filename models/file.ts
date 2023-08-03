@@ -14,14 +14,6 @@ const schema: Schema<IFile> = new Schema(
       type: String,
       required: true,
     },
-    // url: {
-    //   type: String,
-    //   required: true,
-    // },
-    // symmetricKey: {
-    //   type: String,
-    //   required: true,
-    // },
     owner: {
       type: String,
       required: true,

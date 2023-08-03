@@ -1,22 +1,23 @@
 import express from 'express'
 
-import { jwtAuth } from '../controllers/jwt.js'
-import { apiAuth } from '../controllers/api.js'
-
 import {
   consentRequest,
   consentApprove,
   consentReject,
-  consentGetList,
-  consentDelete,
+  consentAuth,
+  // consentGetList,
+  // consentDelete,
 } from '../controllers/consent.js'
+
+import { userAuth } from '../controllers/user.js'
 
 const router = express.Router()
 
-router.post('/request', apiAuth, consentRequest)
-router.post('/approve', jwtAuth, consentApprove)
-router.post('/reject', jwtAuth, consentReject)
-router.post('/delete', jwtAuth, consentDelete)
-router.get('/get/list', jwtAuth, consentGetList)
+router.post('/', userAuth, consentRequest)
+router.post('/approve', userAuth, consentApprove)
+router.post('/reject', userAuth, consentReject)
+router.post('/auth', consentAuth)
+// router.post('/delete', jwtAuth, consentDelete)
+// router.get('/get/list', jwtAuth, consentGetList)
 
 export default router

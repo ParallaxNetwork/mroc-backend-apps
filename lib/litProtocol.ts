@@ -94,16 +94,67 @@ export const litIpfsDecrypt = async (
   cid: string,
   authSig: IAuthSig
 ): Promise<string | Uint8Array> => {
-  const client: any = new LitJsSdk.LitNodeClientNodeJs('ethereum')
-  await client.connect()
+  try {
+    const client: any = new LitJsSdk.LitNodeClientNodeJs('ethereum')
+    await client.connect()
 
-  const decryptedFile = await LitJsSdk.decryptFromIpfs({
-    authSig,
-    ipfsCid: cid,
-    litNodeClient: client,
-  })
+    const decryptedFile = await LitJsSdk.decryptFromIpfs({
+      authSig,
+      ipfsCid: cid,
+      litNodeClient: client,
+    })
 
-  return decryptedFile
+    return decryptedFile
+  } catch (error) {
+    return 'unauthorized'
+  }
+}
+
+export const litConsentAuth = async (
+  fileId: string,
+  walletAddress: string,
+  authSig: IAuthSig
+) => {
+  try {
+    const litActionCode = `
+      const go = async () => {
+        const url = "http://127.0.0.1:8080/consent/auth"
+        const requestBody = {
+          fileId: fileId,
+          walletAddress: walletAddress
+        }
+        
+        const resp = await fetch(url, {
+          method: 'POST',
+          body: requestBody
+        })
+        .then((response) => response.json())
+        .catch(error => console.log(error))
+        
+        // LitActions.setResponse({response: resp})
+      }
+
+      go()
+    `
+
+    const litNodeClient = new LitJsSdk.LitNodeClientNodeJs({
+      litNetwork: 'serrano',
+    })
+    await litNodeClient.connect()
+
+    const signatures = await litNodeClient.executeJs({
+      code: litActionCode,
+      authSig: authSig,
+      jsParams: {
+        fileId,
+        walletAddress,
+      },
+    })
+
+    return signatures
+  } catch (error) {
+    return error.message
+  }
 }
 
 //* Lit Encrypt and Decrypt functions but not IPFS and Access Control Conditions.

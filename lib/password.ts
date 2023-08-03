@@ -8,7 +8,7 @@ export const validatePassword = async (
     const valid = await bcrypt.compare(pass, hash)
     return valid
   } catch (error) {
-    return false
+    return error.message
   }
 }
 
@@ -20,6 +20,6 @@ export const hashPassword = async (pass: string): Promise<string> => {
 
     return hash
   } catch (error) {
-    return ''
+    return error.message
   }
 }

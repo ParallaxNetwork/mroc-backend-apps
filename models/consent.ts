@@ -1,15 +1,42 @@
-import mongoose from 'mongoose'
+import mongoose, { Schema, Document } from 'mongoose'
+
+export interface IConsent extends Document {
+  owner: string
+  receiver: string
+  fileId: string
+  isApproved: boolean
+  isActive: boolean
+}
 
 const schema = new mongoose.Schema(
   {
-    _id: String,
-    owner: String,
-    receiver: String,
-    fileId: String,
-    status: String,
-    isActive: Boolean,
+    owner: {
+      type: String,
+      required: true,
+    },
+    receiver: {
+      type: String,
+      required: true,
+    },
+    fileId: {
+      type: String,
+      required: true,
+    },
+    isApproved: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
   },
   { timestamps: true }
 )
 
-export default mongoose.model('consent', schema)
+delete mongoose.models['consent']
+const model = mongoose.model<IConsent>('consent', schema)
+
+export default model

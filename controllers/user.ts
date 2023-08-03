@@ -1,6 +1,6 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { generatePKP } from '../lib/litProtocol.js'
-import { genLocalWallet } from '../lib/thirdWeb.js'
+import { accessLocalWallet, genLocalWallet } from '../lib/thirdWeb.js'
 import { hashPassword, validatePassword } from '../lib/password.js'
 
 import User from '../models/User.js'
@@ -24,9 +24,8 @@ export const userLogin = async (
       return res.status(200).send("User don't match password")
     }
 
+    req.session['user'] = user
     req.session['password'] = password
-    req.session['encWallet'] = user.encWallet
-    req.session['nik'] = user.nik
 
     return res.status(200).send('OK')
   } catch (error) {
@@ -63,6 +62,28 @@ export const userRegister = async (
     })
 
     return res.status(200).send('OK')
+  } catch (error) {
+    console.log(error.message)
+    return res.status(500).send(error.message)
+  }
+}
+
+export const userAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    if (!req.session || !req.session['user']) {
+      return res.status(200).send('unauthorized')
+    }
+
+    req['wallet'] = await accessLocalWallet(
+      req.session['user'].encWallet,
+      req.session['password']
+    )
+
+    return next()
   } catch (error) {
     console.log(error.message)
     return res.status(500).send(error.message)
