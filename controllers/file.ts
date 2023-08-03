@@ -56,9 +56,8 @@ export const fileGet = async (
     const wallet = await accessLocalWallet(user.encWallet, userPass)
     const authSig = await genAuthSig(wallet)
 
-    const test = await litConsentAuth(id, await wallet.getAddress(), authSig)
+    await litConsentAuth(id, await wallet.getAddress(), authSig)
 
-    console.log(test)
     return res.status(200).send('OK')
 
     const decryptedFileBuffer = Buffer.from(
