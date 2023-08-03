@@ -10,7 +10,7 @@ import {
 import { accessLocalWallet, genAuthSig } from '../lib/thirdWeb.js'
 
 import File from '../models/File.js'
-import Consent from '../models/Consent.js'
+import Consent, { IAuthSig } from '../models/Consent.js'
 import { nanoid } from 'nanoid'
 
 import * as dotenv from 'dotenv'
@@ -54,11 +54,18 @@ export const fileGet = async (
 
     const currFile = await File.findOne({ _id: id, isActive: true })
     const wallet = await accessLocalWallet(user.encWallet, userPass)
-    const authSig = await genAuthSig(wallet)
+    const walletAddress = await wallet.getAddress()
 
-    await litConsentAuth(id, await wallet.getAddress(), authSig)
+    let authSig: IAuthSig = await genAuthSig(wallet)
 
-    return res.status(200).send('OK')
+    if (currFile.owner != walletAddress) {
+      const authorized = await litConsentAuth(id, walletAddress, authSig)
+      if (!authorized) {
+        return res.status(200).send('unauthorized')
+      }
+
+      // const consent = await Consent.findOne({})
+    }
 
     const decryptedFileBuffer = Buffer.from(
       await litIpfsDecrypt(currFile.cid, authSig)
