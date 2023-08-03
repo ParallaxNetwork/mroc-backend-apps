@@ -128,9 +128,10 @@ export const litConsentAuth = async (
           method: 'POST',
           body: requestBody
         })
-        .then((response) => response.json())
+        .then((response) => response)
         .catch(error => console.log(error))
         
+        console.log(resp)
         // LitActions.setResponse({response: resp})
       }
 
@@ -150,6 +151,8 @@ export const litConsentAuth = async (
         walletAddress,
       },
     })
+
+    console.log(signatures)
 
     return signatures
   } catch (error) {

@@ -113,7 +113,7 @@ export const consentAuth = async (
       isActive: true,
     })
 
-    return res.status(200).send(consent !== null)
+    return res.status(200).send({ auth: consent !== null })
   } catch (error) {
     console.log(error.message)
     return res.status(500).send(error.message)
