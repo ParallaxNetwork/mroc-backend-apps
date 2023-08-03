@@ -1,21 +1,16 @@
 import { Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
-import * as dotenv from 'dotenv'
-dotenv.config()
-
-import User from '../models/User.js'
 import { generatePKP } from '../lib/litProtocol.js'
 import { genLocalWallet } from '../lib/thirdWeb.js'
 import { hashPassword, validatePassword } from '../lib/password.js'
 
-const JWT_SECRET = process.env.JWT_SECRET
+import User from '../models/User.js'
 
 export const userLogin = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   try {
-    const { nik, password } = req.body
+    const { nik, password } = req.query as { nik: string; password: string }
 
     const user = await User.findOne({ nik: nik, isActive: true })
 
@@ -29,14 +24,11 @@ export const userLogin = async (
       return res.status(200).send("User don't match password")
     }
 
-    const data = {
-      nik: nik,
-      time: Date.now(),
-    }
+    req.session['password'] = password
+    req.session['encWallet'] = user.encWallet
+    req.session['nik'] = user.nik
 
-    const token = jwt.sign(data, JWT_SECRET, { expiresIn: '6h' })
-
-    return res.status(200).send(token)
+    return res.status(200).send('OK')
   } catch (error) {
     console.log(error.message)
     return res.status(500).send(error.message)

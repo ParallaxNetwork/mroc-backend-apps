@@ -1,6 +1,8 @@
 import express, { Express } from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
+import session from 'express-session'
 import fileupload from 'express-fileupload'
 import * as dotenv from 'dotenv'
 dotenv.config()
@@ -12,6 +14,19 @@ const appExpress = (): Express => {
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(cors())
   app.use(fileupload())
+  app.use(cookieParser())
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 24 * 60 * 10 * 10,
+        httpOnly: true,
+        secure: false,
+      },
+    })
+  )
 
   return app
 }
