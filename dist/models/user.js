@@ -1,11 +1,37 @@
-import mongoose from 'mongoose';
-const schema = new mongoose.Schema({
-    _id: String,
-    nik: String,
-    passwordHash: String,
-    ethAddress: String,
-    tokenId: String,
-    isActive: Boolean,
+import mongoose, { Schema } from 'mongoose';
+const schema = new Schema({
+    nik: {
+        type: String,
+        unique: true,
+        required: true,
+    },
+    passHash: {
+        type: String,
+        required: true,
+    },
+    pkpEth: {
+        type: String,
+        required: true,
+    },
+    pkpToken: {
+        type: String,
+        required: true,
+    },
+    wallet: {
+        type: String,
+        required: true,
+    },
+    encWallet: {
+        type: String,
+        required: true,
+    },
+    isActive: {
+        type: Boolean,
+        required: true,
+        default: true,
+    },
 }, { timestamps: true });
-export default mongoose.model('user', schema);
-//# sourceMappingURL=user.js.map
+delete mongoose.models['user'];
+const model = mongoose.model('user', schema);
+export default model;
+//# sourceMappingURL=User.js.map

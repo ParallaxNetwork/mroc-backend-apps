@@ -14,12 +14,20 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/express-fileupload": "^1.4.1",
+    "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^18.16.3",
     "typescript": "^5.0.4"
   },
   "dependencies": {
     "@lit-protocol/lit-node-client-nodejs": "^2.2.11",
+    "@thirdweb-dev/chains": "^0.1.40",
+    "@thirdweb-dev/sdk": "^3.10.43",
     "@thirdweb-dev/storage": "^1.1.4",
+    "@thirdweb-dev/wallets": "^1.1.7",
     "archiver": "^5.3.1",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
