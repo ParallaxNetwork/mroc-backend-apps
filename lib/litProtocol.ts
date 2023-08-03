@@ -118,7 +118,7 @@ export const litConsentAuth = async (
   try {
     const litActionCode = `
       const go = async () => {
-        const url = "http://127.0.0.1:8080/consent/auth"
+        const url = "https://mroc-backend-apps-6n4eg.ondigitalocean.app/consent/auth"
         const requestBody = {
           fileId: fileId,
           walletAddress: walletAddress
