@@ -39,7 +39,7 @@ export const accessLocalWallet = async (
   }
 }
 
-interface IAuthSig {
+export interface IAuthSig {
   sig: string
   derivedVia: string
   signedMessage: string

@@ -116,23 +116,32 @@ export const litConsentAuth = async (
   authSig: IAuthSig
 ) => {
   try {
+    const serverApiKey = process.env.SERVER_API_KEY
     const litActionCode = `
       const go = async () => {
-        const url = "https://mroc-backend-apps-6n4eg.ondigitalocean.app/consent/auth"
-        const requestBody = {
-          fileId: fileId,
-          walletAddress: walletAddress
+        try {
+          const url = "https://mroc-backend-apps-6n4eg.ondigitalocean.app/consent/auth"
+          const requestBody = {
+            fileId: fileId,
+            walletAddress: walletAddress
+          }
+          
+          const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': serverApiKey
+            },
+            body: JSON.stringify(requestBody)
+          })
+          .then((response) => response.json())
+
+          console.log(resp)
+          
+          LitActions.setResponse({response: JSON.stringify({resp})})
+        } catch(error) {
+          LitActions.setResponse({response: JSON.stringify({auth: false})})
         }
-        
-        const resp = await fetch(url, {
-          method: 'POST',
-          body: requestBody
-        })
-        .then((response) => response)
-        .catch(error => console.log(error))
-        
-        console.log(resp)
-        // LitActions.setResponse({response: resp})
       }
 
       go()
@@ -149,12 +158,13 @@ export const litConsentAuth = async (
       jsParams: {
         fileId,
         walletAddress,
+        serverApiKey,
       },
     })
 
-    console.log(signatures)
+    console.log(signatures.response)
 
-    return signatures
+    return signatures.response['auth'] || false
   } catch (error) {
     return error.message
   }

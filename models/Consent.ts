@@ -1,11 +1,19 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
+export interface IAuthSig {
+  sig: string
+  derivedVia: string
+  signedMessage: string
+  address: string
+}
+
 export interface IConsent extends Document {
   owner: string
   receiver: string
   fileId: string
   isApproved: boolean
   isActive: boolean
+  authSig: IAuthSig
 }
 
 const schema = new mongoose.Schema(
@@ -26,6 +34,10 @@ const schema = new mongoose.Schema(
       type: Boolean,
       required: true,
       default: false,
+    },
+    authSig: {
+      type: Object,
+      required: false,
     },
     isActive: {
       type: Boolean,

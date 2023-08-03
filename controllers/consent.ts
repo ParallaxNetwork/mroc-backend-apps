@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 
-import { accessLocalWallet } from '../lib/thirdWeb.js'
+import { accessLocalWallet, genAuthSig } from '../lib/thirdWeb.js'
+import { serverAuth } from '../lib/server.js'
 
 import User from '../models/User.js'
 import File from '../models/File.js'
@@ -64,7 +65,7 @@ export const consentApprove = async (
         isApproved: false,
         isActive: true,
       },
-      { $set: { isApproved: true } }
+      { $set: { isApproved: true, authSig: await genAuthSig(wallet) } }
     )
 
     return res.status(200).send('OK')
@@ -105,6 +106,11 @@ export const consentAuth = async (
 ): Promise<Response> => {
   try {
     const { fileId, walletAddress } = req.body
+    const apiKey = req.header('x-api-key')
+
+    if (!(await serverAuth(apiKey))) {
+      return res.status(200).send('unauthorized')
+    }
 
     const consent = await Consent.findOne({
       fileId: fileId,
@@ -113,7 +119,7 @@ export const consentAuth = async (
       isActive: true,
     })
 
-    return res.status(200).send({ auth: consent !== null })
+    return res.status(200).send(consent)
   } catch (error) {
     console.log(error.message)
     return res.status(500).send(error.message)
