@@ -1,5 +1,5 @@
-import { sendReturn } from '../utils/return.js'
-import { generateAuthSig } from '../utils/sig.js'
+import { sendReturn } from '../lib/return.js'
+import { generateAuthSig } from '../lib/sig.js'
 import * as LitJsSdk from '@lit-protocol/lit-node-client-nodejs'
 import jwt from 'jsonwebtoken'
 import User from '../models/user.js'
@@ -71,6 +71,10 @@ go()
 export const jwtAuth = async (req, res, next) => {
   try {
     // JWT Checking
+    if (req.facility) {
+      return next()
+    }
+
     const bearerHeader = req.header(JWT_HEADER)
 
     if (typeof bearerHeader != 'string') {

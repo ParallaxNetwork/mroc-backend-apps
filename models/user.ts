@@ -1,15 +1,52 @@
-import mongoose from 'mongoose'
+import mongoose, { Schema, Document } from 'mongoose'
 
-const schema = new mongoose.Schema(
+export interface IUser extends Document {
+  nik: string
+  passHash: string
+  pkpEth: string
+  pkpToken: string
+  wallet: string
+  encWallet: string
+  isActive: boolean
+}
+
+const schema: Schema<IUser> = new Schema(
   {
-    _id: String,
-    nik: String,
-    passwordHash: String,
-    ethAddress: String,
-    tokenId: String,
-    isActive: Boolean,
+    nik: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    passHash: {
+      type: String,
+      required: true,
+    },
+    pkpEth: {
+      type: String,
+      required: true,
+    },
+    pkpToken: {
+      type: String,
+      required: true,
+    },
+    wallet: {
+      type: String,
+      required: true,
+    },
+    encWallet: {
+      type: String,
+      required: true,
+    },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
   },
   { timestamps: true }
 )
 
-export default mongoose.model('user', schema)
+delete mongoose.models['user']
+const model = mongoose.model<IUser>('user', schema)
+
+export default model

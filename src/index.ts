@@ -1,75 +1,49 @@
-import express from "express";
-import bodyParser from "body-parser";
-import cors from "cors";
-import mongoose from "mongoose";
-import fileupload from "express-fileupload";
+import express, { Express } from 'express'
+import bodyParser from 'body-parser'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
+import session from 'express-session'
+import fileupload from 'express-fileupload'
+import * as dotenv from 'dotenv'
+dotenv.config()
 
-import jwtRouter from "../routes/jwt.js";
-import userRouter from "../routes/user.js";
-import ipfsRouter from "../routes/ipfs.js";
-import apiRouter from "../routes/api.js";
-import fileRouter from "../routes/file.js";
-import consentRouter from "../routes/consent.js";
+const appExpress = (): Express => {
+  const app = express()
 
-import * as dotenv from "dotenv";
-dotenv.config();
+  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(cors())
+  app.use(fileupload())
+  app.use(cookieParser())
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 24 * 60 * 10 * 10,
+        httpOnly: true,
+        secure: false,
+      },
+    })
+  )
 
-const app = express();
-const port = process.env.PORT || 3001;
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
-app.use(fileupload());
-
-app.use("/jwt", jwtRouter);
-app.use("/user", userRouter);
-app.use("/ipfs", ipfsRouter);
-app.use("/api", apiRouter);
-app.use("/file", fileRouter);
-app.use("/consent", consentRouter);
-
-function print(path, layer) {
-  if (layer.route) {
-    layer.route.stack.forEach(
-      print.bind(null, path.concat(split(layer.route.path)))
-    );
-  } else if (layer.name === "router" && layer.handle.stack) {
-    layer.handle.stack.forEach(
-      print.bind(null, path.concat(split(layer.regexp)))
-    );
-  } else if (layer.method) {
-    console.log(
-      "%s /%s",
-      layer.method.toUpperCase(),
-      path.concat(split(layer.regexp)).filter(Boolean).join("/")
-    );
-  }
+  return app
 }
 
-function split(thing) {
-  if (typeof thing === "string") {
-    return thing.split("/");
-  } else if (thing.fast_slash) {
-    return "";
-  } else {
-    var match = thing
-      .toString()
-      .replace("\\/?", "")
-      .replace("(?=\\/|$)", "$")
-      .match(/^\/\^((?:\\[.*+?^${}()|[\]\\\/]|[^.*+?^${}()|[\]\\\/])*)\$\//);
-    return match
-      ? match[1].replace(/\\(.)/g, "$1").split("/")
-      : "<complex:" + thing.toString() + ">";
-  }
-}
+const appServer = appExpress()
 
-app._router.stack.forEach(print.bind(null, []));
+//* connect mongoose
+import mongoose from 'mongoose'
+mongoose.set('strictQuery', false)
+mongoose.connect(process.env.DATABASE_URL)
 
-// Connect to MongoDB
-mongoose.set("strictQuery", false);
-mongoose.connect(process.env.DATABASE_URL);
+//* connect router
+import { routeConnect } from './routeConnect.js'
+await routeConnect(appServer)
 
-app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
-});
+//* connect express
+const port = process.env.PORT || 3001
+appServer.listen(port, () => {
+  console.log(`Server listening at http://localhost:${port}`)
+})
