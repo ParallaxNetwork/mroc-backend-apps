@@ -24,7 +24,7 @@ export const genLocalWallet = async (
 export const accessLocalWallet = async (
   encWallet: string,
   password: string
-) => {
+): Promise<LocalWallet> => {
   try {
     const localWallet = new LocalWallet()
     await localWallet.import({

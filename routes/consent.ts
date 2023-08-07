@@ -5,6 +5,7 @@ import {
   consentApprove,
   consentReject,
   consentAuth,
+  consentUser,
   // consentGetList,
   // consentDelete,
 } from '../controllers/consent.js'
@@ -17,6 +18,7 @@ router.post('/', userAuth, consentRequest)
 router.post('/approve', userAuth, consentApprove)
 router.post('/reject', userAuth, consentReject)
 router.post('/auth', consentAuth)
+router.get('/user', userAuth, consentUser)
 // router.post('/delete', jwtAuth, consentDelete)
 // router.get('/get/list', jwtAuth, consentGetList)
 
