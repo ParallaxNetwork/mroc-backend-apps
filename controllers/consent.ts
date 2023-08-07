@@ -13,14 +13,14 @@ export const consentRequest = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { id } = req.query
+    const { fileId } = req.query
     const user = req.session['user']
     const userPass = req.session['password']
 
-    const file = await File.findOne({ _id: id, isActive: true })
+    const file = await File.findOne({ _id: fileId, isActive: true })
 
     if (!file) {
-      return res.status(200).send(`file with id ${id} not found`)
+      return res.status(200).send(`file with id ${fileId} not found`)
     }
 
     const wallet = await accessLocalWallet(user.encWallet, userPass)
@@ -28,7 +28,7 @@ export const consentRequest = async (
     const currConsent = await Consent.findOne({
       owner: file.owner,
       receiver: await wallet.getAddress(),
-      fileId: id,
+      fileId: fileId,
     })
 
     if (currConsent) {
@@ -40,7 +40,7 @@ export const consentRequest = async (
     await Consent.create({
       owner: file.owner,
       receiver: await wallet.getAddress(),
-      fileId: id,
+      fileId: fileId,
     })
 
     return res.status(200).send('OK')
@@ -55,12 +55,12 @@ export const consentApprove = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { id } = req.query
+    const { consentId } = req.query
     const wallet: LocalWallet = req['wallet']
 
     await Consent.updateOne(
       {
-        _id: id,
+        _id: consentId,
         owner: await wallet.getAddress(),
         isApproved: false,
         isActive: true,
@@ -80,12 +80,12 @@ export const consentReject = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { id } = req.query
+    const { consentId } = req.query
     const wallet: LocalWallet = req['wallet']
 
     await Consent.updateOne(
       {
-        _id: id,
+        _id: consentId,
         owner: await wallet.getAddress(),
         isApproved: false,
         isActive: true,
@@ -120,6 +120,25 @@ export const consentAuth = async (
     })
 
     return res.status(200).send(consent)
+  } catch (error) {
+    console.log(error.message)
+    return res.status(500).send(error.message)
+  }
+}
+
+export const consentUser = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const walletAddress = await req['wallet'].getAddress()
+
+    const consents = await Consent.find({
+      owner: walletAddress,
+      isActive: true,
+    })
+
+    return res.status(200).send(consents)
   } catch (error) {
     console.log(error.message)
     return res.status(500).send(error.message)

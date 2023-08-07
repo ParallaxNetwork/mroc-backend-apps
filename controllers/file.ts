@@ -10,7 +10,7 @@ import {
 import { accessLocalWallet, genAuthSig } from '../lib/thirdWeb.js'
 
 import File from '../models/File.js'
-import Consent, { IAuthSig } from '../models/Consent.js'
+import { IAuthSig } from '../models/Consent.js'
 import { nanoid } from 'nanoid'
 
 import * as dotenv from 'dotenv'
@@ -48,18 +48,20 @@ export const fileGet = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { id } = req.params
-    const user = req.session['user']
-    const userPass = req.session['password']
+    const { fileId } = req.query as { fileId: string }
 
-    const currFile = await File.findOne({ _id: id, isActive: true })
-    const wallet = await accessLocalWallet(user.encWallet, userPass)
+    const currFile = await File.findOne({ _id: fileId, isActive: true })
+    const wallet = req['wallet']
     const walletAddress = await wallet.getAddress()
 
     let authSig: IAuthSig = await genAuthSig(wallet)
 
-    if (currFile.owner != walletAddress) {
-      const consentAuthSig = await litConsentAuth(id, walletAddress, authSig)
+    if (currFile.owner !== walletAddress) {
+      const consentAuthSig = await litConsentAuth(
+        fileId,
+        walletAddress,
+        authSig
+      )
       if (!consentAuthSig) {
         return res.status(200).send('unauthorized')
       }
@@ -81,6 +83,22 @@ export const fileGet = async (
     res.end()
   } catch (error) {
     console.log(error.message)
+    return res.status(500).send(error.message)
+  }
+}
+
+export const fileUser = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const walletAddress = await req['wallet'].getAddress()
+
+    const files = await File.find({ owner: walletAddress, isActive: true })
+
+    return res.status(200).send(files)
+  } catch (error) {
+    console.log(error)
     return res.status(500).send(error.message)
   }
 }

@@ -2,8 +2,6 @@ import mongoose, { Schema, Document } from 'mongoose'
 
 export interface IFile extends Document {
   cid: string
-  url: string
-  symmetricKey: string
   owner: string
   isActive: boolean
 }
