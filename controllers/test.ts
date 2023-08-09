@@ -10,7 +10,9 @@ export const test = async (req: Request, res: Response) => {
     const uploadPath = path.join(__dirname, 'upload/')
 
     req.pipe(req.busboy)
+    //! console.log('test') bisa
     req.busboy.on('file', (fieldname, file, filename) => {
+      //! console.log('test') gabisa
       console.log(`Upload of '${filename}' started`)
 
       const fstream = fs.createWriteStream(
