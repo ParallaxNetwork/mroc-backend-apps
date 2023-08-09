@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 import session from 'express-session'
 import fileupload from 'express-fileupload'
 import * as dotenv from 'dotenv'
+import busboy from 'connect-busboy'
 dotenv.config()
 
 const appExpress = (): Express => {
@@ -25,6 +26,11 @@ const appExpress = (): Express => {
         httpOnly: true,
         secure: false,
       },
+    })
+  )
+  app.use(
+    busboy({
+      highWaterMark: 2 * 1024 * 1024,
     })
   )
 
