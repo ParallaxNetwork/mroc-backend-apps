@@ -1,34 +1,30 @@
 import { Request, Response } from 'express'
-import { fileURLToPath } from 'url'
-import path from 'path'
+import { UploadedFile } from 'express-fileupload'
 import fs from 'fs'
 
 export const test = async (req: Request, res: Response) => {
   try {
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = path.dirname(__filename)
-    const uploadPath = path.join(__dirname, 'upload/')
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.status(400).send('No files were uploaded.')
+    }
 
-    req.pipe(req.busboy)
-    //! console.log('test') bisa
-    req.busboy.on('file', (fieldname, file, filename) => {
-      //! console.log('test') gabisa
-      console.log(`Upload of '${filename}' started`)
+    const uploadedFile = req.files.file as UploadedFile
 
-      const fstream = fs.createWriteStream(
-        path.join(uploadPath, String(filename))
-      )
+    const uploadPath = `./uploads/${uploadedFile.name}`
 
-      file.pipe(fstream)
+    const uploadDirectory = './uploads'
+    if (!fs.existsSync(uploadDirectory)) {
+      fs.mkdirSync(uploadDirectory)
+    }
+    uploadedFile.mv(uploadPath, err => {
+      if (err) {
+        return res.status(500).send(err)
+      }
 
-      fstream.on('close', () => {
-        console.log(`Upload of '${filename}' finished`)
-        res.redirect('back')
-      })
+      res.send('File uploaded!')
     })
-
-    return res.status(200).send('OK')
   } catch (error) {
+    console.log(error.message)
     return res.status(500).send(error.message)
   }
 }
